@@ -595,16 +595,22 @@ document.addEventListener('DOMContentLoaded', () => {
   function fbDeleteUser(id){ db.ref('users/' + id).remove(); }
 
   /* ============================================================
-     FIREBASE — ITEMS (real-time)
+     FIREBASE — ITEMS (por usuário — independentes)
   ============================================================ */
-  db.ref('items').on('value', snap => {
-    const data = snap.val() || {};
-    items = Object.values(data).map(nrmItem);
-    if (currentUser) render(searchInput.value);
-  });
+  let itemsListener = null;
 
-  function fbSaveItem(it)   { db.ref('items/' + it.id).set(it); }
-  function fbDeleteItem(id) { db.ref('items/' + id).remove(); }
+  function listenItems(userId) {
+    if (itemsListener) { db.ref('items/' + itemsListener).off('value'); }
+    itemsListener = userId;
+    db.ref('items/' + userId).on('value', snap => {
+      const data = snap.val() || {};
+      items = Object.values(data).map(nrmItem);
+      render(searchInput.value);
+    });
+  }
+
+  function fbSaveItem(it)   { db.ref('items/' + currentUser.id + '/' + it.id).set(it); }
+  function fbDeleteItem(id) { db.ref('items/' + currentUser.id + '/' + id).remove(); }
 
   /* ============================================================
      FIREBASE — FAVORITOS (por usuário)
@@ -720,7 +726,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.admin-only').forEach(el => {
       el.style.display = u.role === 'admin' ? '' : 'none';
     });
-    loadFavs(u.id, () => render());
+    loadFavs(u.id, () => {
+      listenItems(u.id); // carrega e escuta os itens deste usuário
+    });
     wireSearch();
   }
 
@@ -758,8 +766,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('editing');
     menuEditLabel.textContent = 'Ativar edição';
     clearSession();
+    if (itemsListener) { db.ref('items/' + itemsListener).off('value'); itemsListener = null; }
     currentUser = null;
     favs = new Set();
+    items = [];
     lockScreen.classList.remove('hidden');
     lockInput.value = '';
     lockError.style.display = 'none';
