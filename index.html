@@ -307,7 +307,68 @@ body.editing .edit-badge{display:inline-block}
 .role-badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700}
 .role-badge.admin{background:#faeaec;color:#8A0D13;border:1px solid #f2cdd1}
 .role-badge.user{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}
+
+/* CORES NOS CARDS */
+.card-color-red{background:linear-gradient(180deg,#fff5f5,#fee2e2)!important;border-color:#fca5a5!important}
+.card-color-green{background:linear-gradient(180deg,#f0fdf4,#dcfce7)!important;border-color:#86efac!important}
+.card-color-blue{background:linear-gradient(180deg,#eff6ff,#dbeafe)!important;border-color:#93c5fd!important}
+.card-color-yellow{background:linear-gradient(180deg,#fefce8,#fef9c3)!important;border-color:#fde047!important}
+/* FILTRO DE CORES */
+.color-filter-bar{max-width:var(--maxw);margin:0 auto 10px;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.color-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1.5px solid #e3e6ea;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;color:var(--muted);transition:.2s;user-select:none}
+.color-chip-dot{width:10px;height:10px;border-radius:999px;flex:0 0 10px}
+.color-chip[data-color="red"] .color-chip-dot{background:#f87171}
+.color-chip[data-color="green"] .color-chip-dot{background:#4ade80}
+.color-chip[data-color="blue"] .color-chip-dot{background:#60a5fa}
+.color-chip[data-color="yellow"] .color-chip-dot{background:#facc15}
+.color-chip[data-color="red"].active{color:#dc2626;border-color:#fca5a5;background:#fff5f5}
+.color-chip[data-color="green"].active{color:#16a34a;border-color:#86efac;background:#f0fdf4}
+.color-chip[data-color="blue"].active{color:#2563eb;border-color:#93c5fd;background:#eff6ff}
+.color-chip[data-color="yellow"].active{color:#ca8a04;border-color:#fde047;background:#fefce8}
+/* ACESSO RECENTE */
+.recent-section{max-width:var(--maxw);margin:0 auto 6px;padding:0 16px}
+.recent-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.recent-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px}
+.recent-card{grid-column:span 6;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#f8f9fa;border:1px solid #eceff2;cursor:pointer;transition:.2s}
+@media(min-width:680px){.recent-card{grid-column:span 3}}
+.recent-card:hover{background:#f0f2f5;border-color:#d0d4d8;transform:translateY(-1px)}
+.recent-icon{width:32px;height:32px;border-radius:10px;background:#faeaec;border:1px solid #f2cdd1;display:grid;place-items:center;flex:0 0 32px;overflow:hidden}
+.recent-icon svg{width:16px;height:16px;stroke:var(--red)}
+.recent-icon img{width:32px;height:32px;object-fit:cover;border-radius:10px}
+.recent-title{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* COLOR SWATCH */
+.color-swatch-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.color-swatch{width:28px;height:28px;border-radius:999px;border:2.5px solid transparent;cursor:pointer;transition:.15s;position:relative;display:grid;place-items:center}
+.color-swatch:hover{transform:scale(1.15)}
+.color-swatch[data-color=""]{background:#f0f2f5;border-color:#d8dce0}
+.color-swatch[data-color="red"]{background:#f87171}
+.color-swatch[data-color="green"]{background:#4ade80}
+.color-swatch[data-color="blue"]{background:#60a5fa}
+.color-swatch[data-color="yellow"]{background:#facc15}
+.color-swatch.selected{border-color:rgba(0,0,0,.35)}
+.color-swatch.selected::after{content:'✓';font-size:14px;color:#fff;font-weight:900;line-height:1;position:absolute}
+.color-swatch[data-color=""].selected::after,.color-swatch[data-color="yellow"].selected::after{color:#555}
+/* MODAL CONTROLE */
+
+/* FILA QUANTUM */
+.qa-queue{margin-top:14px;padding-top:12px;border-top:1px solid #f0f2f4}
+.qa-queue-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.qa-queue-empty{font-size:13px;color:var(--muted);font-style:italic}
+.qa-queue-list{display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto}
+.qa-queue-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#f5f6f8;font-size:13px;font-weight:600}
+.qa-queue-me{background:#faeaec;color:var(--red)}
+.qa-queue-pos{width:20px;height:20px;border-radius:999px;background:var(--muted);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;flex:0 0 20px}
+.qa-queue-me .qa-queue-pos{background:var(--red)}
+.qa-request-btn{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--red);background:#fff0f2;color:var(--red);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:10px;transition:.2s}
+.qa-request-btn:hover{background:#faeaec}
+.qa-request-btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#111214;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:10000;transition:.35s cubic-bezier(.22,1,.36,1);opacity:0;pointer-events:none;max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.toast-green{background:#15803d}
+.toast.toast-red{background:#8A0D13}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
@@ -382,6 +443,11 @@ body.editing .edit-badge{display:inline-block}
         <span class="profile-caret"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       </button>
       <div class="profile-menu" id="profileMenu" role="menu">
+        <!-- Controle — só admin -->
+        <button class="pmenu-item admin-only" id="menuControle" type="button" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="6" width="4" height="15"/><rect x="17" y="2" width="4" height="19"/></svg>
+          Controle
+        </button>
         <!-- Gerenciar — só admin -->
         <button class="pmenu-item admin-only" id="menuManage" type="button" role="menuitem">
           <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -421,8 +487,20 @@ body.editing .edit-badge{display:inline-block}
 </div>
 
 <!-- ================================================================
-     GRID
+     FILTRO DE CORES + ACESSO RECENTE + GRID
 ================================================================ -->
+<!-- Filtro de cores -->
+<div class="color-filter-bar" id="colorFilterBar">
+  <div class="color-chip" data-color="red"><div class="color-chip-dot"></div>Vermelho</div>
+  <div class="color-chip" data-color="green"><div class="color-chip-dot"></div>Verde</div>
+  <div class="color-chip" data-color="blue"><div class="color-chip-dot"></div>Azul</div>
+  <div class="color-chip" data-color="yellow"><div class="color-chip-dot"></div>Amarelo</div>
+</div>
+<!-- Acesso recente -->
+<div class="recent-section" id="recentSection" style="display:none">
+  <div class="recent-label">⚡ Acesso recente</div>
+  <div class="recent-grid" id="recentGrid"></div>
+</div>
 <div class="container">
   <div class="grid" id="grid"></div>
 </div>
@@ -456,6 +534,16 @@ body.editing .edit-badge{display:inline-block}
           </div>
         </div>
         <button id="fImgClear" class="btn" type="button" style="font-size:12px;margin-top:6px;width:fit-content">Remover imagem</button>
+      </div>
+      <div class="field">
+        <label>Cor do cartão (opcional)</label>
+        <div class="color-swatch-row" id="fColorRow">
+          <div class="color-swatch selected" data-color="" title="Sem cor"></div>
+          <div class="color-swatch" data-color="red" title="Vermelho"></div>
+          <div class="color-swatch" data-color="green" title="Verde"></div>
+          <div class="color-swatch" data-color="blue" title="Azul"></div>
+          <div class="color-swatch" data-color="yellow" title="Amarelo"></div>
+        </div>
       </div>
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button id="edCancel" class="btn" type="button">Cancelar</button>
@@ -534,6 +622,16 @@ body.editing .edit-badge{display:inline-block}
           <option value="admin">Administrador</option>
         </select>
       </div>
+      <div class="field">
+        <label>Cor do cartão (opcional)</label>
+        <div class="color-swatch-row" id="fColorRow">
+          <div class="color-swatch selected" data-color="" title="Sem cor"></div>
+          <div class="color-swatch" data-color="red" title="Vermelho"></div>
+          <div class="color-swatch" data-color="green" title="Verde"></div>
+          <div class="color-swatch" data-color="blue" title="Azul"></div>
+          <div class="color-swatch" data-color="yellow" title="Amarelo"></div>
+        </div>
+      </div>
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button id="euCancel" class="btn" type="button">Cancelar</button>
         <button id="euSave" class="btn btn-primary" type="button">Salvar</button>
@@ -574,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
      NORMALIZERS
   ============================================================ */
   function nrmU(u){ return {id:u.id||uid(),name:String(u.name||''),pass:String(u.pass||''),role:u.role==='admin'?'admin':'user',avatar:String(u.avatar||'')}; }
-  function nrmItem(it){ return {id:it.id||uid(),title:String(it.title||''),desc:String(it.desc||''),url:String(it.url||''),img:String(it.img||'')}; }
+  function nrmItem(it){ return {id:it.id||uid(),title:String(it.title||''),desc:String(it.desc||''),url:String(it.url||''),img:String(it.img||''),color:String(it.color||'')}; }
 
   /* ============================================================
      FIREBASE — USERS (real-time)
@@ -735,9 +833,12 @@ document.addEventListener('DOMContentLoaded', () => {
       el.style.display = u.role === 'admin' ? '' : 'none';
     });
     loadFavs(u.id, () => {
-      listenItems(u.id); // carrega e escuta os itens deste usuário
+      listenItems(u.id);
     });
+    listenQAQueue();
+    listenNotifications(u.id);
     wireSearch();
+    renderRecent();
   }
 
   function updateProfileUI() {
@@ -801,13 +902,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return af ? -1 : 1;
     });
     ordered
-      .filter(it => !q || (it.title + ' ' + (it.desc || '')).toLowerCase().includes(q))
+      .filter(it => (!q || (it.title + ' ' + (it.desc || '')).toLowerCase().includes(q)) && colorMatches(it))
       .forEach(it => grid.appendChild(makeCard(it)));
+    renderRecent();
   }
 
   function makeCard(item) {
     const el = document.createElement('div');
-    el.className = 'card'; el.tabIndex = 0;
+    el.className = 'card' + (item.color ? ' card-color-'+item.color : ''); el.tabIndex = 0;
     const isFav = favs.has(item.id);
     el.innerHTML = `
       <div class="card-actions">
@@ -837,11 +939,303 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.closest('.card-actions')) return;
       if (item.title === 'Quantum Axis') { openQA(item.url); return; }
       if (!item.url || item.url === '#') { alert(`Sem URL definida para "${item.title}".`); return; }
+      trackRecent(item);
       window.open(item.url, '_blank', 'noopener');
     });
     return el;
   }
 
+  /* ============================================================
+     CORES — FILTER CHIPS
+  ============================================================ */
+  const colorFilterBar = document.getElementById('colorFilterBar');
+  let activeColors = new Set();
+
+  colorFilterBar.addEventListener('click', e => {
+    const chip = e.target.closest('.color-chip');
+    if (!chip) return;
+    const c = chip.dataset.color;
+    if (activeColors.has(c)) activeColors.delete(c); else activeColors.add(c);
+    chip.classList.toggle('active', activeColors.has(c));
+    render(searchInput.value);
+  });
+
+  function colorMatches(item) {
+    if (activeColors.size === 0) return true;
+    return activeColors.has(item.color || '');
+  }
+
+  /* ============================================================
+     CORES — COLOR SWATCH NO EDITOR
+  ============================================================ */
+  function selectColorSwatch(color) {
+    document.querySelectorAll('#fColorRow .color-swatch').forEach(s => {
+      s.classList.toggle('selected', s.dataset.color === color);
+    });
+  }
+  document.getElementById('fColorRow').addEventListener('click', e => {
+    const sw = e.target.closest('.color-swatch');
+    if (!sw) return;
+    selectColorSwatch(sw.dataset.color);
+  });
+
+  /* ============================================================
+     ACESSO RECENTE
+  ============================================================ */
+  function recentKey() { return 'officerhub.recent.' + (currentUser ? currentUser.id : 'anon'); }
+  function loadRecentData() {
+    try { const r = localStorage.getItem(recentKey()); return r ? JSON.parse(r) : {}; } catch(e) { return {}; }
+  }
+  function saveRecentData(d) { try { localStorage.setItem(recentKey(), JSON.stringify(d)); } catch(e) {} }
+
+  function trackRecent(item) {
+    const d = loadRecentData();
+    if (!d[item.id]) d[item.id] = { count: 0, title: item.title, img: item.img || '' };
+    d[item.id].count++;
+    d[item.id].title = item.title;
+    d[item.id].img = item.img || '';
+    d[item.id].lastAccess = Date.now();
+    saveRecentData(d);
+    renderRecent();
+  }
+
+  function renderRecent() {
+    const recentSection = document.getElementById('recentSection');
+    const recentGrid = document.getElementById('recentGrid');
+    if (!recentSection || !currentUser) return;
+    const d = loadRecentData();
+    const entries = Object.entries(d)
+      .filter(([id]) => items.find(it => it.id === id))
+      .sort((a, b) => a[1].title.localeCompare(b[1].title, 'pt'))
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 4);
+    if (entries.length === 0) { recentSection.style.display = 'none'; return; }
+    recentSection.style.display = '';
+    // Sort top 4 alphabetically
+    const top4 = entries.slice(0,4).sort((a,b) => a[1].title.localeCompare(b[1].title,'pt'));
+    recentGrid.innerHTML = top4.map(([id, info]) => {
+      const item = items.find(it => it.id === id);
+      if (!item) return '';
+      const iconHtml = item.img
+        ? `<div class="recent-icon"><img src="${escapeHtml(item.img)}" alt=""/></div>`
+        : `<div class="recent-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 14h4v6H4zM10 10h4v10h-4zM16 6h4v14h-4z" stroke-width="1.6" stroke="currentColor"/></svg></div>`;
+      return `<div class="recent-card" data-id="${escapeHtml(id)}">${iconHtml}<span class="recent-title">${escapeHtml(item.title)}</span></div>`;
+    }).join('');
+    recentGrid.querySelectorAll('.recent-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const item = items.find(it => it.id === card.dataset.id);
+        if (!item) return;
+        if (item.title === 'Quantum Axis') { openQA(item.url); return; }
+        if (!item.url || item.url === '#') return;
+        trackRecent(item);
+        window.open(item.url, '_blank', 'noopener');
+      });
+    });
+  }
+
+  /* ============================================================
+     TOAST
+  ============================================================ */
+  const toastEl = document.getElementById('toastEl');
+  let toastTimer = null;
+  function showToast(msg, type = '') {
+    toastEl.textContent = msg;
+    toastEl.className = 'toast' + (type ? ' toast-'+type : '');
+    toastEl.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 4000);
+  }
+
+  /* ============================================================
+     CONTROLE — MODAL ADMIN
+  ============================================================ */
+  const controleModal = document.getElementById('controleModal');
+  const controleClose = document.getElementById('controleClose');
+  const menuControle = document.getElementById('menuControle');
+
+  menuControle.addEventListener('click', () => {
+    profileMenu.classList.remove('open');
+    openControle();
+  });
+  controleClose.addEventListener('click', () => {
+    controleModal.classList.remove('open');
+    controleModal.setAttribute('aria-hidden', 'true');
+  });
+  controleModal.addEventListener('click', e => { if (e.target === controleModal) { controleModal.classList.remove('open'); } });
+
+  function openControle() {
+    controleModal.classList.add('open');
+    controleModal.setAttribute('aria-hidden', 'false');
+    loadControleStats();
+  }
+
+  /* Chart.js instances para destruir ao reabrir */
+  let chartMinutesInst = null;
+  let chartAccessesInst = null;
+
+  function loadControleStats() {
+    document.getElementById('ctrlLoading').style.display = '';
+    document.getElementById('ctrlCharts').style.display = 'none';
+    document.getElementById('ctrlEmpty').style.display = 'none';
+
+    db.ref('qa_log').once('value', snap => {
+      const logs = snap.val() || {};
+      const stats = {};
+      Object.values(logs).forEach(log => {
+        if (!log.userId || !log.endTime) return;
+        if (!stats[log.userId]) stats[log.userId] = { name: log.userName || log.userId, totalMin: 0, accesses: 0 };
+        const s = stats[log.userId];
+        const dur = Math.max(0, Math.round((log.endTime - log.startTime) / 60000));
+        s.totalMin += dur;
+        s.accesses++;
+      });
+
+      document.getElementById('ctrlLoading').style.display = 'none';
+      const rows = Object.values(stats).sort((a,b) => a.name.localeCompare(b.name, 'pt'));
+
+      if (rows.length === 0) {
+        document.getElementById('ctrlEmpty').style.display = '';
+        return;
+      }
+
+      document.getElementById('ctrlCharts').style.display = '';
+      const labels = rows.map(r => r.name);
+      const mins = rows.map(r => r.totalMin);
+      const accs = rows.map(r => r.accesses);
+
+      const chartOpts = (yLabel) => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: {
+          label: ctx => ctx.parsed.y + (yLabel === 'min' ? ' min' : ' acessos')
+        }}},
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'ui-sans-serif, system-ui', weight: '700' }, color: '#6b7177' } },
+          y: { beginAtZero: true, grid: { color: '#f0f2f4' }, ticks: { font: { family: 'ui-sans-serif, system-ui' }, color: '#6b7177', stepSize: 1 } }
+        }
+      });
+
+      const barColor = (alpha) => rows.map((_, i) => {
+        const palette = ['#C9082D','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#06b6d4','#f97316'];
+        const hex = palette[i % palette.length];
+        return hex + (alpha < 1 ? Math.round(alpha*255).toString(16).padStart(2,'0') : '');
+      });
+
+      if (chartMinutesInst) chartMinutesInst.destroy();
+      const ctxM = document.getElementById('chartMinutes').getContext('2d');
+      chartMinutesInst = new Chart(ctxM, {
+        type: 'bar',
+        data: { labels, datasets: [{ data: mins, backgroundColor: barColor(.85), borderRadius: 8, borderSkipped: false }] },
+        options: chartOpts('min')
+      });
+
+      if (chartAccessesInst) chartAccessesInst.destroy();
+      const ctxA = document.getElementById('chartAccesses').getContext('2d');
+      chartAccessesInst = new Chart(ctxA, {
+        type: 'bar',
+        data: { labels, datasets: [{ data: accs, backgroundColor: barColor(.85), borderRadius: 8, borderSkipped: false }] },
+        options: chartOpts('acc')
+      });
+    });
+  }
+
+  /* ============================================================
+     QUANTUM AXIS — QUEUE & NOTIFICATIONS
+  ============================================================ */
+  const qaRequestBtn = document.getElementById('qaRequestBtn');
+  const qaQueueList = document.getElementById('qaQueueList');
+  let qaQueueListener = null;
+  let qaNotifListener = null;
+  let qaCurrentListener = null;
+  let qaStartTime = null;
+
+  // Real-time queue listener
+  function listenQAQueue() {
+    if (qaQueueListener) db.ref('qa_queue').off('value', qaQueueListener);
+    qaQueueListener = db.ref('qa_queue').on('value', snap => {
+      const data = snap.val() || {};
+      const queue = Object.entries(data)
+        .map(([key, val]) => ({ key, ...val }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+      renderQAQueue(queue);
+    });
+  }
+
+  // Notifications listener
+  function listenNotifications(userId) {
+    if (qaNotifListener) db.ref('qa_notifications/' + userId).off('value', qaNotifListener);
+    qaNotifListener = db.ref('qa_notifications/' + userId).on('value', snap => {
+      const notif = snap.val();
+      if (!notif || notif.seen) return;
+      showToast(notif.message, notif.type === 'available' ? 'green' : '');
+      db.ref('qa_notifications/' + userId + '/seen').set(true);
+    });
+  }
+
+  function renderQAQueue(queue) {
+    if (!currentUser) return;
+    if (queue.length === 0) {
+      qaQueueList.innerHTML = '<div class="qa-queue-empty">Nenhuma solicitação na fila</div>';
+    } else {
+      qaQueueList.innerHTML = '<div class="qa-queue-list">' + queue.map((item, i) => {
+        const isMe = item.userId === currentUser.id;
+        return `<div class="qa-queue-item ${isMe ? 'qa-queue-me' : ''}">
+          <div class="qa-queue-pos">${i+1}</div>
+          <span>${escapeHtml(item.userName)}${isMe ? ' (você)' : ''}</span>
+        </div>`;
+      }).join('') + '</div>';
+    }
+    // Show/hide request button based on QA status and queue
+    db.ref('qa_status').once('value', snap => {
+      const status = snap.val() || 'available';
+      const inQueue = queue.some(q => q.userId === currentUser.id);
+      updateQARequestBtn(status, inQueue, queue);
+    });
+  }
+
+  function updateQARequestBtn(status, inQueue, queue) {
+    if (status === 'available') {
+      qaRequestBtn.style.display = 'none';
+    } else {
+      // QA is in use
+      db.ref('qa_current').once('value', snap => {
+        const cur = snap.val();
+        const isCurrentUser = cur && cur.userId === currentUser.id;
+        if (isCurrentUser) {
+          qaRequestBtn.style.display = 'none'; // user is the one using
+        } else if (inQueue) {
+          qaRequestBtn.style.display = 'block';
+          qaRequestBtn.textContent = '✓ Na fila de espera';
+          qaRequestBtn.disabled = true;
+        } else {
+          qaRequestBtn.style.display = 'block';
+          qaRequestBtn.textContent = '📋 Solicitar uso';
+          qaRequestBtn.disabled = false;
+        }
+      });
+    }
+  }
+
+  qaRequestBtn.addEventListener('click', () => {
+    if (!currentUser) return;
+    db.ref('qa_queue').once('value', snap => {
+      const data = snap.val() || {};
+      const already = Object.values(data).some(q => q.userId === currentUser.id);
+      if (already) { showToast('Você já está na fila!'); return; }
+      db.ref('qa_queue').push({ userId: currentUser.id, userName: currentUser.name, timestamp: Date.now() });
+      showToast('Você entrou na fila de espera!');
+      qaRequestBtn.textContent = '✓ Na fila de espera';
+      qaRequestBtn.disabled = true;
+    });
+  });
+
+  /* ============================================================
+     CONTROLE MODAL
+  ============================================================ */
+
+  /* ============================================================
+     WIRE SEARCH (add color filter)
+  ============================================================ */
   function wireSearch() {
     searchInput.addEventListener('input', e => render(e.target.value));
     document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement !== lockInput) { e.preventDefault(); searchInput.focus(); } });
@@ -875,18 +1269,55 @@ document.addEventListener('DOMContentLoaded', () => {
       qaAccessBtn.disabled = true;
       qaHint.textContent = 'Para acessar, clique em Disponível';
       qaHint.className = 'qa-hint available';
+      qaRequestBtn.style.display = 'none';
     } else {
       qaStatusBtn.textContent = 'Em Uso';
       qaStatusBtn.className = 'qa-status inuse';
       qaAccessBtn.disabled = false;
       qaHint.textContent = 'A Quantum está em uso, aguarde';
       qaHint.className = 'qa-hint inuse';
+      // Check if current user is the one using
+      db.ref('qa_current').once('value', snap => {
+        const cur = snap.val();
+        const isMe = cur && cur.userId === currentUser?.id;
+        db.ref('qa_queue').once('value', qSnap => {
+          const qData = qSnap.val() || {};
+          const inQueue = Object.values(qData).some(q => q.userId === currentUser?.id);
+          updateQARequestBtn(status, inQueue, []);
+        });
+      });
     }
   }
   qaStatusBtn.addEventListener('click', () => {
     db.ref('qa_status').once('value', snap => {
       const current = snap.val() || 'available';
       const next = current === 'available' ? 'inuse' : 'available';
+      if (next === 'inuse') {
+        // Record start
+        const startTime = Date.now();
+        db.ref('qa_current').set({ userId: currentUser.id, userName: currentUser.name, startTime });
+      } else {
+        // Record end, log it, notify queue
+        db.ref('qa_current').once('value', curSnap => {
+          const cur = curSnap.val();
+          if (cur && cur.startTime) {
+            const endTime = Date.now();
+            const duration = Math.round((endTime - cur.startTime) / 60000);
+            db.ref('qa_log').push({ userId: cur.userId, userName: cur.userName, startTime: cur.startTime, endTime, duration });
+          }
+          db.ref('qa_current').remove();
+          // Notify first in queue
+          db.ref('qa_queue').once('value', qSnap => {
+            const qData = qSnap.val() || {};
+            const queue = Object.entries(qData).map(([k,v])=>({key:k,...v})).sort((a,b)=>a.timestamp-b.timestamp);
+            if (queue.length > 0) {
+              const first = queue[0];
+              db.ref('qa_notifications/' + first.userId).set({ type: 'available', message: '🟢 A Quantum está disponível! É a sua vez.', timestamp: Date.now(), seen: false });
+              db.ref('qa_queue/' + first.key).remove();
+            }
+          });
+        });
+      }
       fbSaveQA(next);
       updateQAUI(next);
     });
@@ -927,11 +1358,13 @@ document.addEventListener('DOMContentLoaded', () => {
       fImgUrl.value = (it.img && !it.img.startsWith('data:')) ? it.img : '';
       updImgPrev(pendingImg);
       edDelZone.style.display = 'block';
+      selectColorSwatch(it.color || '');
     } else {
       edTitle.textContent = 'Novo bloco';
       fTitle.value = ''; fDesc.value = ''; fUrl.value = '';
       pendingImg = ''; fImgUrl.value = ''; updImgPrev('');
       edDelZone.style.display = 'none';
+      selectColorSwatch('');
     }
     editorModal.classList.add('open');
     editorModal.setAttribute('aria-hidden', 'false');
@@ -946,7 +1379,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!title) { alert('Informe o título.'); fTitle.focus(); return; }
     if (url && !/^https?:\/\//i.test(url)) { alert('A URL deve começar com http:// ou https://'); fUrl.focus(); return; }
     const id = editingId || uid();
-    fbSaveItem({ id, title, desc, url, img: pendingImg });
+    const color = document.querySelector('#fColorRow .color-swatch.selected')?.dataset.color || '';
+    fbSaveItem({ id, title, desc, url, img: pendingImg, color });
     closeEditor();
   });
   edDel.addEventListener('click', () => {
@@ -1046,6 +1480,35 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- ================================================================
+     MODAL: CONTROLE QUANTUM AXIS (admin)
+================================================================ -->
+<div id="controleModal" class="modal" aria-hidden="true">
+  <div class="modal-card" style="width:min(720px,96vw)">
+    <div class="modal-header">
+      <strong>Controle — Quantum Axis</strong>
+      <button id="controleClose" class="btn" type="button" style="margin-left:auto">Fechar</button>
+    </div>
+    <div class="modal-body">
+      <div id="ctrlLoading" style="text-align:center;padding:24px;color:var(--muted);font-size:14px">Carregando dados...</div>
+      <div id="ctrlCharts" style="display:none">
+        <div style="margin-bottom:24px">
+          <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">⏱ Tempo total de uso (minutos)</div>
+          <div style="position:relative;height:220px"><canvas id="chartMinutes"></canvas></div>
+        </div>
+        <div style="padding-top:20px;border-top:1px solid #f0f2f4">
+          <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">🔄 Quantidade de acessos</div>
+          <div style="position:relative;height:220px"><canvas id="chartAccesses"></canvas></div>
+        </div>
+      </div>
+      <div id="ctrlEmpty" style="display:none;text-align:center;padding:32px;color:var(--muted);font-size:14px">Nenhum registro de uso ainda.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast de notificação -->
+<div class="toast" id="toastEl"></div>
+
+<!-- ================================================================
      MODAL: QUANTUM AXIS
 ================================================================ -->
 <div id="qaModal" aria-hidden="true">
@@ -1061,6 +1524,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="qa-access" id="qaAccessBtn" type="button" disabled>Acessar Quantum</button>
       </div>
       <div class="qa-hint available" id="qaHint">Para acessar, clique em Disponível</div>
+      <button class="qa-request-btn" id="qaRequestBtn" type="button" style="display:none">📋 Solicitar uso</button>
+      <div class="qa-queue" id="qaQueueSection">
+        <div class="qa-queue-label">Fila de espera</div>
+        <div id="qaQueueList"><div class="qa-queue-empty">Nenhuma solicitação na fila</div></div>
+      </div>
     </div>
   </div>
 </div>
