@@ -362,6 +362,11 @@ body.editing .edit-badge{display:inline-block}
 .qa-request-btn{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--red);background:#fff0f2;color:var(--red);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:10px;transition:.2s}
 .qa-request-btn:hover{background:#faeaec}
 .qa-request-btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+
+/* FILTROS CONTROLE */
+.ctrl-filter{padding:6px 16px;border-radius:999px;border:1.5px solid #e3e6ea;background:#fff;color:var(--muted);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s}
+.ctrl-filter:hover{border-color:#c9d0d8;color:var(--ink)}
+.ctrl-filter.active{background:var(--red);border-color:var(--red);color:#fff}
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#111214;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:10000;transition:.35s cubic-bezier(.22,1,.36,1);opacity:0;pointer-events:none;max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -1069,74 +1074,134 @@ document.addEventListener('DOMContentLoaded', () => {
     loadControleStats();
   }
 
-  /* Chart.js instances para destruir ao reabrir */
+  /* Chart.js instances */
   let chartMinutesInst = null;
   let chartAccessesInst = null;
+  let ctrlPeriod = 'day'; // 'day' | 'month' | 'year'
+  let ctrlLogsCache = null;
+
+  // Filtro de período
+  document.querySelectorAll('.ctrl-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ctrl-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ctrlPeriod = btn.dataset.period;
+      if (ctrlLogsCache !== null) buildControleCharts(ctrlLogsCache);
+    });
+  });
 
   function loadControleStats() {
     document.getElementById('ctrlLoading').style.display = '';
     document.getElementById('ctrlCharts').style.display = 'none';
     document.getElementById('ctrlEmpty').style.display = 'none';
+    ctrlLogsCache = null;
 
     db.ref('qa_log').once('value', snap => {
-      const logs = snap.val() || {};
-      const stats = {};
-      Object.values(logs).forEach(log => {
-        if (!log.userId || !log.endTime) return;
-        if (!stats[log.userId]) stats[log.userId] = { name: log.userName || log.userId, totalMin: 0, accesses: 0 };
-        const s = stats[log.userId];
-        const dur = Math.max(0, Math.round((log.endTime - log.startTime) / 60000));
-        s.totalMin += dur;
-        s.accesses++;
-      });
-
+      ctrlLogsCache = snap.val() || {};
       document.getElementById('ctrlLoading').style.display = 'none';
-      const rows = Object.values(stats).sort((a,b) => a.name.localeCompare(b.name, 'pt'));
-
-      if (rows.length === 0) {
-        document.getElementById('ctrlEmpty').style.display = '';
-        return;
-      }
-
-      document.getElementById('ctrlCharts').style.display = '';
-      const labels = rows.map(r => r.name);
-      const mins = rows.map(r => r.totalMin);
-      const accs = rows.map(r => r.accesses);
-
-      const chartOpts = (yLabel) => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: {
-          label: ctx => ctx.parsed.y + (yLabel === 'min' ? ' min' : ' acessos')
-        }}},
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { family: 'ui-sans-serif, system-ui', weight: '700' }, color: '#6b7177' } },
-          y: { beginAtZero: true, grid: { color: '#f0f2f4' }, ticks: { font: { family: 'ui-sans-serif, system-ui' }, color: '#6b7177', stepSize: 1 } }
-        }
-      });
-
-      const barColor = (alpha) => rows.map((_, i) => {
-        const palette = ['#C9082D','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#06b6d4','#f97316'];
-        const hex = palette[i % palette.length];
-        return hex + (alpha < 1 ? Math.round(alpha*255).toString(16).padStart(2,'0') : '');
-      });
-
-      if (chartMinutesInst) chartMinutesInst.destroy();
-      const ctxM = document.getElementById('chartMinutes').getContext('2d');
-      chartMinutesInst = new Chart(ctxM, {
-        type: 'bar',
-        data: { labels, datasets: [{ data: mins, backgroundColor: barColor(.85), borderRadius: 8, borderSkipped: false }] },
-        options: chartOpts('min')
-      });
-
-      if (chartAccessesInst) chartAccessesInst.destroy();
-      const ctxA = document.getElementById('chartAccesses').getContext('2d');
-      chartAccessesInst = new Chart(ctxA, {
-        type: 'bar',
-        data: { labels, datasets: [{ data: accs, backgroundColor: barColor(.85), borderRadius: 8, borderSkipped: false }] },
-        options: chartOpts('acc')
-      });
+      buildControleCharts(ctrlLogsCache);
     });
+  }
+
+  function buildControleCharts(logs) {
+    const now = new Date();
+
+    // Helpers de período
+    function periodKey(ts) {
+      const d = new Date(ts);
+      if (ctrlPeriod === 'day')   return d.toISOString().slice(0,10);           // YYYY-MM-DD
+      if (ctrlPeriod === 'month') return d.getFullYear()+'-'+(d.getMonth()+1);  // YYYY-M
+      return String(d.getFullYear());                                             // YYYY
+    }
+
+    // Todos os períodos únicos que existem nos logs (para calcular média diária)
+    const allPeriods = new Set();
+    Object.values(logs).forEach(log => {
+      if (!log.startTime) return;
+      allPeriods.add(periodKey(log.startTime));
+    });
+    const numPeriods = Math.max(1, allPeriods.size);
+
+    // Agregar por usuário
+    const stats = {};
+    Object.values(logs).forEach(log => {
+      if (!log.userId || !log.endTime) return;
+      if (!stats[log.userId]) stats[log.userId] = { name: log.userName || log.userId, totalMin: 0, accesses: 0 };
+      const dur = Math.max(0, Math.round((log.endTime - log.startTime) / 60000));
+      stats[log.userId].totalMin += dur;
+      stats[log.userId].accesses++;
+    });
+
+    const rows = Object.values(stats).sort((a,b) => a.name.localeCompare(b.name, 'pt'));
+
+    if (rows.length === 0) {
+      document.getElementById('ctrlEmpty').style.display = '';
+      document.getElementById('ctrlCharts').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('ctrlCharts').style.display = '';
+
+    // Labels de período
+    const periodLabel = { day: 'média/dia', month: 'por mês', year: 'por ano' }[ctrlPeriod];
+    const periodLabelFull = { day: 'Média por dia', month: 'Agrupado por mês', year: 'Agrupado por ano' }[ctrlPeriod];
+
+    // Para 'day': dividir pelo nº de dias distintos
+    // Para 'month' e 'year': total (sem divisão — mostra o total)
+    const mins = rows.map(r => ctrlPeriod === 'day'
+      ? parseFloat((r.totalMin / numPeriods).toFixed(1))
+      : r.totalMin
+    );
+    const accs = rows.map(r => ctrlPeriod === 'day'
+      ? parseFloat((r.accesses / numPeriods).toFixed(2))
+      : r.accesses
+    );
+
+    // Atualizar labels dos gráficos
+    const mUnit = ctrlPeriod === 'day' ? 'min/dia' : 'min';
+    const aUnit = ctrlPeriod === 'day' ? 'acessos/dia' : 'acessos';
+    document.getElementById('ctrlMinutesLabel').textContent = `⏱ Tempo de uso — ${periodLabelFull} (${mUnit})`;
+    document.getElementById('ctrlAccessLabel').textContent  = `🔄 Acessos — ${periodLabelFull} (${aUnit})`;
+
+    const labels = rows.map(r => r.name);
+
+    const barColors = rows.map((_, i) => {
+      const palette = ['#C9082D','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#06b6d4','#f97316','#ec4899'];
+      return palette[i % palette.length] + 'D9'; // ~85% opacity
+    });
+
+    const chartOpts = (unit) => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' ' + unit } }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { family: 'ui-sans-serif, system-ui', weight: '700', size: 12 }, color: '#6b7177' }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: '#f0f2f4' },
+          ticks: { font: { family: 'ui-sans-serif, system-ui', size: 11 }, color: '#6b7177' }
+        }
+      }
+    });
+
+    if (chartMinutesInst) chartMinutesInst.destroy();
+    chartMinutesInst = new Chart(
+      document.getElementById('chartMinutes').getContext('2d'),
+      { type: 'bar', data: { labels, datasets: [{ data: mins, backgroundColor: barColors, borderRadius: 8, borderSkipped: false }] }, options: chartOpts(mUnit) }
+    );
+
+    if (chartAccessesInst) chartAccessesInst.destroy();
+    chartAccessesInst = new Chart(
+      document.getElementById('chartAccesses').getContext('2d'),
+      { type: 'bar', data: { labels, datasets: [{ data: accs, backgroundColor: barColors, borderRadius: 8, borderSkipped: false }] }, options: chartOpts(aUnit) }
+    );
   }
 
   /* ============================================================
@@ -1489,14 +1554,21 @@ document.addEventListener('DOMContentLoaded', () => {
       <button id="controleClose" class="btn" type="button" style="margin-left:auto">Fechar</button>
     </div>
     <div class="modal-body">
+      <!-- Filtros de período -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:13px;font-weight:700;color:var(--muted);margin-right:4px">Período:</span>
+        <button class="ctrl-filter active" data-period="day" type="button">Média por dia</button>
+        <button class="ctrl-filter" data-period="month" type="button">Por mês</button>
+        <button class="ctrl-filter" data-period="year" type="button">Por ano</button>
+      </div>
       <div id="ctrlLoading" style="text-align:center;padding:24px;color:var(--muted);font-size:14px">Carregando dados...</div>
       <div id="ctrlCharts" style="display:none">
-        <div style="margin-bottom:24px">
-          <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">⏱ Tempo total de uso (minutos)</div>
+        <div style="margin-bottom:28px">
+          <div id="ctrlMinutesLabel" style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">⏱ Tempo de uso (minutos)</div>
           <div style="position:relative;height:220px"><canvas id="chartMinutes"></canvas></div>
         </div>
         <div style="padding-top:20px;border-top:1px solid #f0f2f4">
-          <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">🔄 Quantidade de acessos</div>
+          <div id="ctrlAccessLabel" style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">🔄 Quantidade de acessos</div>
           <div style="position:relative;height:220px"><canvas id="chartAccesses"></canvas></div>
         </div>
       </div>
