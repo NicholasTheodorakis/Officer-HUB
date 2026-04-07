@@ -267,6 +267,8 @@ body.editing .edit-badge{display:inline-block}
 }
 .qa-hint.available{background:#f0faf3;color:#1a9e3f}
 .qa-hint.inuse{background:#fff0f2;color:#8A0D13}
+.qa-who{margin-top:10px;padding:10px 14px;border-radius:10px;background:#fff0f2;border:1px solid #f2cdd1;color:#8A0D13;font-size:13px;font-weight:700;text-align:center}
+.qa-status:disabled{opacity:.45;cursor:not-allowed}
 .qa-overlay{position:fixed;inset:0;background:rgba(17,18,20,.45);backdrop-filter:blur(3px);z-index:61}
 .qa-wrap{position:relative;z-index:62}
 .qa-close-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
@@ -748,6 +750,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const qaModal = document.getElementById('qaModal');
     if (qaModal && qaModal.classList.contains('open')) updateQAUI(status);
   });
+  // Also listen to qa_current for real-time "who is using" update
+  db.ref('qa_current').on('value', snap => {
+    const qaModal = document.getElementById('qaModal');
+    if (!qaModal || !qaModal.classList.contains('open')) return;
+    const cur = snap.val();
+    db.ref('qa_status').once('value', stSnap => {
+      const status = stSnap.val() || 'available';
+      db.ref('qa_queue').once('value', qSnap => {
+        const qData = qSnap.val() || {};
+        const queue = Object.entries(qData)
+          .map(([k, v]) => ({ key: k, ...v }))
+          .sort((a, b) => a.timestamp - b.timestamp);
+        refreshQAUI(status, cur, queue);
+      });
+    });
+  });
   function fbSaveQA(s) { db.ref('qa_status').set(s); }
   function fbLoadQA(cb){ db.ref('qa_status').once('value', snap => cb(snap.val() || 'available')); }
 
@@ -1208,13 +1226,12 @@ document.addEventListener('DOMContentLoaded', () => {
      QUANTUM AXIS — QUEUE & NOTIFICATIONS
   ============================================================ */
   const qaRequestBtn = document.getElementById('qaRequestBtn');
-  const qaQueueList = document.getElementById('qaQueueList');
+  const qaQueueList  = document.getElementById('qaQueueList');
+  const qaWho        = document.getElementById('qaWho');
   let qaQueueListener = null;
   let qaNotifListener = null;
-  let qaCurrentListener = null;
-  let qaStartTime = null;
 
-  // Real-time queue listener
+  // ── Ouve a fila em tempo real ──────────────────────────────
   function listenQAQueue() {
     if (qaQueueListener) db.ref('qa_queue').off('value', qaQueueListener);
     qaQueueListener = db.ref('qa_queue').on('value', snap => {
@@ -1226,7 +1243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Notifications listener
+  // ── Ouve notificações do usuário ───────────────────────────
   function listenNotifications(userId) {
     if (qaNotifListener) db.ref('qa_notifications/' + userId).off('value', qaNotifListener);
     qaNotifListener = db.ref('qa_notifications/' + userId).on('value', snap => {
@@ -1237,50 +1254,107 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── Renderiza fila + atualiza toda a UI do QA ──────────────
   function renderQAQueue(queue) {
     if (!currentUser) return;
+
+    // Render lista de fila
     if (queue.length === 0) {
       qaQueueList.innerHTML = '<div class="qa-queue-empty">Nenhuma solicitação na fila</div>';
     } else {
-      qaQueueList.innerHTML = '<div class="qa-queue-list">' + queue.map((item, i) => {
-        const isMe = item.userId === currentUser.id;
-        return `<div class="qa-queue-item ${isMe ? 'qa-queue-me' : ''}">
-          <div class="qa-queue-pos">${i+1}</div>
-          <span>${escapeHtml(item.userName)}${isMe ? ' (você)' : ''}</span>
-        </div>`;
-      }).join('') + '</div>';
+      qaQueueList.innerHTML = '<div class="qa-queue-list">' +
+        queue.map((item, i) => {
+          const isMe = item.userId === currentUser.id;
+          return `<div class="qa-queue-item ${isMe ? 'qa-queue-me' : ''}">
+            <div class="qa-queue-pos">${i + 1}</div>
+            <span>${escapeHtml(item.userName)}${isMe ? ' (você)' : ''}</span>
+          </div>`;
+        }).join('') + '</div>';
     }
-    // Show/hide request button based on QA status and queue
+
+    // Busca estado atual e rende UI completa
     db.ref('qa_status').once('value', snap => {
       const status = snap.val() || 'available';
-      const inQueue = queue.some(q => q.userId === currentUser.id);
-      updateQARequestBtn(status, inQueue, queue);
+      db.ref('qa_current').once('value', curSnap => {
+        const cur = curSnap.val();
+        refreshQAUI(status, cur, queue);
+      });
     });
   }
 
-  function updateQARequestBtn(status, inQueue, queue) {
-    if (status === 'available') {
-      qaRequestBtn.style.display = 'none';
+  // ── Centro de controle: quem pode fazer o quê ──────────────
+  function refreshQAUI(status, cur, queue) {
+    if (!currentUser) return;
+
+    const isCurrentUser  = cur && cur.userId === currentUser.id;
+    const inQueue        = queue.some(q => q.userId === currentUser.id);
+    const myQueuePos     = queue.findIndex(q => q.userId === currentUser.id);
+    const isFirstInQueue = myQueuePos === 0;
+
+    // ── "Quem está usando" ─────────────────────────────────
+    if (status === 'inuse' && cur) {
+      qaWho.style.display = '';
+      if (isCurrentUser) {
+        qaWho.textContent = '✅ Você está usando a Quantum';
+        qaWho.style.background = '#f0fdf4';
+        qaWho.style.borderColor = '#86efac';
+        qaWho.style.color = '#15803d';
+      } else {
+        qaWho.textContent = `🔴 ${escapeHtml(cur.userName)} está usando a Quantum`;
+        qaWho.style.background = '#fff0f2';
+        qaWho.style.borderColor = '#f2cdd1';
+        qaWho.style.color = '#8A0D13';
+      }
     } else {
-      // QA is in use
-      db.ref('qa_current').once('value', snap => {
-        const cur = snap.val();
-        const isCurrentUser = cur && cur.userId === currentUser.id;
-        if (isCurrentUser) {
-          qaRequestBtn.style.display = 'none'; // user is the one using
-        } else if (inQueue) {
-          qaRequestBtn.style.display = 'block';
-          qaRequestBtn.textContent = '✓ Na fila de espera';
-          qaRequestBtn.disabled = true;
-        } else {
-          qaRequestBtn.style.display = 'block';
-          qaRequestBtn.textContent = '📋 Solicitar uso';
-          qaRequestBtn.disabled = false;
-        }
-      });
+      qaWho.style.display = 'none';
+    }
+
+    // ── Botão de status (Disponível / Em Uso) ──────────────
+    if (status === 'available') {
+      qaStatusBtn.textContent = 'Disponível';
+      qaStatusBtn.className   = 'qa-status available';
+      // Só pode tomar posse: usuário sem fila OU primeiro da fila
+      const canTake = queue.length === 0 || isFirstInQueue;
+      qaStatusBtn.disabled = !canTake;
+      qaHint.textContent   = canTake
+        ? 'Para acessar, clique em Disponível'
+        : `Aguarde sua vez na fila (posição ${myQueuePos + 1})`;
+      qaHint.className = 'qa-hint available';
+    } else {
+      qaStatusBtn.textContent = 'Em Uso';
+      qaStatusBtn.className   = 'qa-status inuse';
+      // Só quem está usando pode liberar
+      qaStatusBtn.disabled = !isCurrentUser;
+      if (isCurrentUser) {
+        qaHint.textContent = 'Clique em "Em Uso" para liberar a Quantum';
+      } else {
+        qaHint.textContent = 'A Quantum está em uso, aguarde';
+      }
+      qaHint.className = 'qa-hint inuse';
+    }
+
+    // ── Botão Acessar Quantum ──────────────────────────────
+    // Só habilitado para quem marcou "Em Uso"
+    qaAccessBtn.disabled = !(status === 'inuse' && isCurrentUser);
+
+    // ── Botão Solicitar / fila ─────────────────────────────
+    if (status === 'available' || isCurrentUser) {
+      // Disponível (sem fila) ou já é o usuário atual — sem botão de fila
+      qaRequestBtn.style.display = 'none';
+    } else if (inQueue) {
+      qaRequestBtn.style.display = 'block';
+      qaRequestBtn.textContent   = isFirstInQueue
+        ? '🟡 Você é o próximo! Aguarde a liberação'
+        : `✓ Fila: posição ${myQueuePos + 1}`;
+      qaRequestBtn.disabled = true;
+    } else {
+      qaRequestBtn.style.display = 'block';
+      qaRequestBtn.textContent   = '📋 Solicitar uso';
+      qaRequestBtn.disabled      = false;
     }
   }
 
+  // ── Entrar na fila ─────────────────────────────────────────
   qaRequestBtn.addEventListener('click', () => {
     if (!currentUser) return;
     db.ref('qa_queue').once('value', snap => {
@@ -1288,9 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const already = Object.values(data).some(q => q.userId === currentUser.id);
       if (already) { showToast('Você já está na fila!'); return; }
       db.ref('qa_queue').push({ userId: currentUser.id, userName: currentUser.name, timestamp: Date.now() });
-      showToast('Você entrou na fila de espera!');
-      qaRequestBtn.textContent = '✓ Na fila de espera';
-      qaRequestBtn.disabled = true;
+      showToast('Você entrou na fila de espera! 🕐');
     });
   });
 
@@ -1319,7 +1391,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openQA(url) {
     qaUrl = url || '#';
-    fbLoadQA(status => updateQAUI(status));
+    // Load all state at once for accurate UI
+    db.ref('qa_status').once('value', stSnap => {
+      const status = stSnap.val() || 'available';
+      db.ref('qa_current').once('value', curSnap => {
+        const cur = curSnap.val();
+        db.ref('qa_queue').once('value', qSnap => {
+          const qData = qSnap.val() || {};
+          const queue = Object.entries(qData)
+            .map(([k, v]) => ({ key: k, ...v }))
+            .sort((a, b) => a.timestamp - b.timestamp);
+          refreshQAUI(status, cur, queue);
+        });
+      });
+    });
     qaModal.classList.add('open');
     qaModal.setAttribute('aria-hidden', 'false');
   }
@@ -1327,64 +1412,59 @@ document.addEventListener('DOMContentLoaded', () => {
     qaModal.classList.remove('open');
     qaModal.setAttribute('aria-hidden', 'true');
   }
+  // updateQAUI: usado pelo listener real-time de status
   function updateQAUI(status) {
-    if (status === 'available') {
-      qaStatusBtn.textContent = 'Disponível';
-      qaStatusBtn.className = 'qa-status available';
-      qaAccessBtn.disabled = true;
-      qaHint.textContent = 'Para acessar, clique em Disponível';
-      qaHint.className = 'qa-hint available';
-      qaRequestBtn.style.display = 'none';
-    } else {
-      qaStatusBtn.textContent = 'Em Uso';
-      qaStatusBtn.className = 'qa-status inuse';
-      qaAccessBtn.disabled = false;
-      qaHint.textContent = 'A Quantum está em uso, aguarde';
-      qaHint.className = 'qa-hint inuse';
-      // Check if current user is the one using
-      db.ref('qa_current').once('value', snap => {
-        const cur = snap.val();
-        const isMe = cur && cur.userId === currentUser?.id;
-        db.ref('qa_queue').once('value', qSnap => {
-          const qData = qSnap.val() || {};
-          const inQueue = Object.values(qData).some(q => q.userId === currentUser?.id);
-          updateQARequestBtn(status, inQueue, []);
-        });
+    db.ref('qa_current').once('value', curSnap => {
+      const cur = curSnap.val();
+      db.ref('qa_queue').once('value', qSnap => {
+        const qData = qSnap.val() || {};
+        const queue = Object.entries(qData)
+          .map(([k, v]) => ({ key: k, ...v }))
+          .sort((a, b) => a.timestamp - b.timestamp);
+        refreshQAUI(status, cur, queue);
       });
-    }
+    });
   }
+
+  // Clique no botão Disponível / Em Uso
   qaStatusBtn.addEventListener('click', () => {
     db.ref('qa_status').once('value', snap => {
       const current = snap.val() || 'available';
-      const next = current === 'available' ? 'inuse' : 'available';
-      if (next === 'inuse') {
-        // Record start
+
+      if (current === 'available') {
+        // ── Tomar posse: marcar como Em Uso ──────────────────
         const startTime = Date.now();
         db.ref('qa_current').set({ userId: currentUser.id, userName: currentUser.name, startTime });
+        fbSaveQA('inuse');
       } else {
-        // Record end, log it, notify queue
+        // ── Liberar: só quem está usando pode fazer isso ─────
         db.ref('qa_current').once('value', curSnap => {
           const cur = curSnap.val();
-          if (cur && cur.startTime) {
-            const endTime = Date.now();
-            const duration = Math.round((endTime - cur.startTime) / 60000);
-            db.ref('qa_log').push({ userId: cur.userId, userName: cur.userName, startTime: cur.startTime, endTime, duration });
-          }
+          if (!cur || cur.userId !== currentUser.id) return; // segurança extra
+          // Registrar uso
+          const endTime  = Date.now();
+          const duration = Math.round((endTime - cur.startTime) / 60000);
+          db.ref('qa_log').push({ userId: cur.userId, userName: cur.userName, startTime: cur.startTime, endTime, duration });
           db.ref('qa_current').remove();
-          // Notify first in queue
+          fbSaveQA('available');
+          // Notificar o primeiro da fila (mas NÃO remove da fila — ele precisa clicar em "Disponível" para tomar posse)
           db.ref('qa_queue').once('value', qSnap => {
             const qData = qSnap.val() || {};
-            const queue = Object.entries(qData).map(([k,v])=>({key:k,...v})).sort((a,b)=>a.timestamp-b.timestamp);
+            const queue = Object.entries(qData)
+              .map(([k, v]) => ({ key: k, ...v }))
+              .sort((a, b) => a.timestamp - b.timestamp);
             if (queue.length > 0) {
               const first = queue[0];
-              db.ref('qa_notifications/' + first.userId).set({ type: 'available', message: '🟢 A Quantum está disponível! É a sua vez.', timestamp: Date.now(), seen: false });
-              db.ref('qa_queue/' + first.key).remove();
+              db.ref('qa_notifications/' + first.userId).set({
+                type: 'available',
+                message: `🟢 É a sua vez! A Quantum está disponível. Clique em "Disponível" para acessar.`,
+                timestamp: Date.now(),
+                seen: false
+              });
             }
           });
         });
       }
-      fbSaveQA(next);
-      updateQAUI(next);
     });
   });
   qaAccessBtn.addEventListener('click', () => {
@@ -1595,6 +1675,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="qa-status available" id="qaStatusBtn" type="button">Disponível</button>
         <button class="qa-access" id="qaAccessBtn" type="button" disabled>Acessar Quantum</button>
       </div>
+      <div class="qa-who" id="qaWho" style="display:none"></div>
       <div class="qa-hint available" id="qaHint">Para acessar, clique em Disponível</div>
       <button class="qa-request-btn" id="qaRequestBtn" type="button" style="display:none">📋 Solicitar uso</button>
       <div class="qa-queue" id="qaQueueSection">
