@@ -1432,10 +1432,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const current = snap.val() || 'available';
 
       if (current === 'available') {
-        // ── Tomar posse: marcar como Em Uso ──────────────────
+        // ── Tomar posse: marcar como Em Uso e sair da fila ───
         const startTime = Date.now();
         db.ref('qa_current').set({ userId: currentUser.id, userName: currentUser.name, startTime });
         fbSaveQA('inuse');
+        // Remove o usuário da fila caso esteja nela (quando era o 1º e tomou posse)
+        db.ref('qa_queue').once('value', qSnap => {
+          const qData = qSnap.val() || {};
+          Object.entries(qData).forEach(([k, v]) => {
+            if (v.userId === currentUser.id) db.ref('qa_queue/' + k).remove();
+          });
+        });
       } else {
         // ── Liberar: só quem está usando pode fazer isso ─────
         db.ref('qa_current').once('value', curSnap => {
